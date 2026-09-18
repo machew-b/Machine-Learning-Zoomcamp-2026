@@ -1,6 +1,6 @@
 # Machine Learning Zoomcamp 2026
 
-My homework and project submissions for [DataTalksClub's Machine Learning Zoomcamp 2026](https://github.com/DataTalksClub/machine-learning-zoomcamp) — a free, hands-on course covering the full ML engineering pipeline, from regression and classification through deployment, trees, deep learning, and model serving.
+This repository contains my work for [DataTalksClub's Machine Learning Zoomcamp 2026](https://github.com/DataTalksClub/machine-learning-zoomcamp), a hands-on course covering the full ML engineering workflow from regression and classification to deployment, trees, deep learning, and model serving.
 
 ## Progress
 
@@ -21,31 +21,33 @@ My homework and project submissions for [DataTalksClub's Machine Learning Zoomca
 
 **Status key:** `Finished` — task complete · `In Progress` — currently working on it · `Pending` — not yet started.
 
-## Repository Structure
+## Repository structure
 
-Each homework folder follows the same layout:
+Each homework folder follows the same basic layout:
 
-```
+```text
 homework-0X/
-├── README.md            # Objective, approach, and outcome for this homework
-├── INSTRUCTIONS.md       # The homework questions and dataset, as published for the 2026 cohort
-└── homework-0X.ipynb    # My worked solutions
+├── homework-0X.ipynb    # My worked solutions
+├── INSTRUCTIONS.md      # Homework questions and dataset, as published for the 2026 cohort
+├── README.md            # Objective, approach, and outcome for the homework
+└── .ipynb_checkpoints/
 ```
 
-Project folders (midterm and capstones) follow a similar but slightly larger layout, since they include their own data prep, model, and (eventually) deployment code:
+Project folders follow a similar but slightly larger structure since they include their own data preparation, model training, and deployment code:
 
-```
+```text
 projects/<project-name>/
+├── Dockerfile           # For containerized deployment
+├── notebook.ipynb       # EDA, model training, and evaluation
+├── predict.py           # Model-serving script or API
 ├── README.md            # Problem statement, dataset, approach, and results
-├── notebook.ipynb        # EDA, model training, and evaluation
-├── train.py              # Script to train and save the final model
-├── predict.py             # Script/service to serve predictions
-└── Dockerfile              # For containerized deployment
+├── train.py             # Script to train and save the final model
+└── requirements.txt     # Optional project dependencies
 ```
 
-Shared datasets used across multiple homeworks live in the top-level [`datasets/`](datasets) folder and are referenced by each notebook using a relative path such as `../datasets/<file>.csv`.
+Shared datasets used across multiple homeworks live in the top-level [`datasets/`](datasets) folder and are referenced by each notebook using paths such as `../datasets/<file>.csv`.
 
-## Course Info
+## Course info
 
 - Course repo: [DataTalksClub/machine-learning-zoomcamp](https://github.com/DataTalksClub/machine-learning-zoomcamp)
 - Course platform (deadlines, submissions): [courses.datatalks.club/ml-zoomcamp-2026](https://courses.datatalks.club/ml-zoomcamp-2026/)

@@ -1,10 +1,10 @@
 # Homework 1: Introduction to Machine Learning — Instructions
 
-*Paraphrased from [`cohorts/2026/homework/01-intro/homework.md`](https://github.com/DataTalksClub/machine-learning-zoomcamp/blob/main/cohorts/2026/homework/01-intro/homework.md) in the course repo. This homework uses the pinned 2026 car fuel-efficiency release.*
+This homework uses the pinned 2026 car fuel-efficiency release. Source: [`cohorts/2026/homework/01-intro/homework.md`](https://github.com/DataTalksClub/machine-learning-zoomcamp/blob/main/cohorts/2026/homework/01-intro/homework.md) in the course repo.
 
 ## Setup
 
-Install Python, NumPy, Pandas, Matplotlib, and Seaborn — see the environment setup material in the [`01-intro`](https://github.com/DataTalksClub/machine-learning-zoomcamp/tree/main/01-intro) module folder. *(The homework references a `06-environment.md` file specifically; I couldn't confirm that exact filename still exists at that path, so linking to the module folder instead rather than a guessed URL — check there directly.)*
+Install Python, NumPy, Pandas, Matplotlib, and Seaborn — see the environment setup material in the [`01-intro`](https://github.com/DataTalksClub/machine-learning-zoomcamp/tree/main/01-intro) module folder.
 
 ## Dataset
 

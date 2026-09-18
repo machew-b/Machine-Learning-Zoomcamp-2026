@@ -4,15 +4,15 @@
 
 ## Objective
 
-Get comfortable with the environment and basic pandas operations by exploring a car fuel-efficiency dataset: checking library versions, counting records, inspecting categorical/numeric columns, and implementing a tiny linear regression by hand via the normal equation.
+Build confidence with the course environment and basic pandas workflows by exploring a car fuel-efficiency dataset: checking library versions, counting records, inspecting categorical and numeric columns, and implementing a small linear regression by hand using the normal equation.
 
 ## Dataset
 
-[`car_fuel_efficiency_2026.csv`](../datasets/car_fuel_efficiency_2026.csv) — the pinned 2026 release (10,000 rows × 11 columns). Checksum-verified against the official course repo, see [`datasets/README.md`](../datasets/README.md).
+[`car_fuel_efficiency_2026.csv`](../datasets/car_fuel_efficiency_2026.csv) is the pinned 2026 release (10,000 rows × 11 columns). It was checksum-verified against the official course repo; see [`datasets/README.md`](../datasets/README.md).
 
 ## Approach
 
-Loaded the dataset with pandas and answered each question with a targeted snippet — `.shape`, `.nunique()`, `.isnull().sum()`, `.median()`/`.mode()`/`.fillna()`, and for Q7, a manual normal-equation implementation with NumPy (`(XᵀX)⁻¹Xᵀy`).
+I loaded the dataset with pandas and answered each question using targeted operations: `.shape`, `.nunique()`, `.isnull().sum()`, `.median()`/`.mode()`/`.fillna()`, and for Q7, a manual normal-equation implementation with NumPy (`(XᵀX)⁻¹Xᵀy`).
 
 ## Outcome
 

@@ -6,18 +6,18 @@ This repository contains my work for [DataTalksClub's Machine Learning Zoomcamp 
 
 | Homework | Module | Status | Date Submitted |
 |----------|--------|--------|-----------------|
-| [Homework 1](homework-01) | Introduction to Machine Learning | Finished | |
-| [Homework 2](homework-02) | Machine Learning for Regression | Pending | |
-| [Homework 3](homework-03) | Machine Learning for Classification | Pending | |
-| [Homework 4](homework-04) | Evaluation Metrics for Classification | Pending | |
-| [Homework 5](homework-05) | Deploying Machine Learning Models | Pending | |
-| [Homework 6](homework-06) | Decision Trees and Ensemble Learning | Pending | |
-| [Midterm Project](projects/midterm) | End-to-end project (Modules 1-6) | Pending | |
-| [Homework 8](homework-08) | Neural Networks and Deep Learning | Pending | |
-| [Homework 9](homework-09) | Serverless Deep Learning | Pending | |
-| [Homework 10](homework-10) | Kubernetes and TensorFlow Serving | Pending | |
-| [Capstone 1](projects/capstone-1) | End-to-end project (Modules 1-10) | Pending | |
-| [Capstone 2](projects/capstone-2) | Optional second capstone | Pending | |
+| [Homework 1](homework-01) | Introduction to Machine Learning | Finished | September 29, 2026 |
+| [Homework 2](homework-02) | Machine Learning for Regression | Finished | October 06, 2026 |
+| [Homework 3](homework-03) | Machine Learning for Classification | Finished | October 13, 2026 |
+| [Homework 4](homework-04) | Evaluation Metrics for Classification | Finished | October 20, 2026 |
+| [Homework 5](homework-05) | Deploying Machine Learning Models | Pending | October 27, 2026 |
+| [Homework 6](homework-06) | Decision Trees and Ensemble Learning | Pending | November 03, 2026 |
+| [Midterm Project](projects/midterm) | End-to-end project (Modules 1-6) | Pending | November 17, 2026 |
+| [Homework 8](homework-08) | Neural Networks and Deep Learning | Pending | December 01, 2026 |
+| [Homework 9](homework-09) | Serverless Deep Learning | Pending | December 08, 2026 |
+| [Homework 10](homework-10) | Kubernetes and TensorFlow Serving | Pending | December 15, 2026 |
+| [Capstone 1](projects/capstone-1) | End-to-end project (Modules 1-10) | Pending | January 05, 2027 |
+| [Capstone 2](projects/capstone-2) | Optional second capstone | Pending | January 19, 2027 |
 
 **Status key:** `Finished` — task complete · `In Progress` — currently working on it · `Pending` — not yet started.
 

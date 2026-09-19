@@ -6,17 +6,17 @@ This repository contains my work for [DataTalksClub's Machine Learning Zoomcamp 
 
 | Homework | Module | Status | Date Submitted |
 |----------|--------|--------|-----------------|
-| [Homework 1](homework-01) | Introduction to Machine Learning | Pending | |
+| [Homework 1](homework-01) | Introduction to Machine Learning | Finished | |
 | [Homework 2](homework-02) | Machine Learning for Regression | Pending | |
 | [Homework 3](homework-03) | Machine Learning for Classification | Pending | |
 | [Homework 4](homework-04) | Evaluation Metrics for Classification | Pending | |
 | [Homework 5](homework-05) | Deploying Machine Learning Models | Pending | |
 | [Homework 6](homework-06) | Decision Trees and Ensemble Learning | Pending | |
-| [Midterm Project](projects/midterm) | End-to-end project (Modules 1–6) | Pending | |
+| [Midterm Project](projects/midterm) | End-to-end project (Modules 1-6) | Pending | |
 | [Homework 8](homework-08) | Neural Networks and Deep Learning | Pending | |
 | [Homework 9](homework-09) | Serverless Deep Learning | Pending | |
 | [Homework 10](homework-10) | Kubernetes and TensorFlow Serving | Pending | |
-| [Capstone 1](projects/capstone-1) | End-to-end project (Modules 1–10) | Pending | |
+| [Capstone 1](projects/capstone-1) | End-to-end project (Modules 1-10) | Pending | |
 | [Capstone 2](projects/capstone-2) | Optional second capstone | Pending | |
 
 **Status key:** `Finished` — task complete · `In Progress` — currently working on it · `Pending` — not yet started.
@@ -28,8 +28,7 @@ Each homework folder follows the same basic layout:
 ```text
 homework-0X/
 ├── homework-0X.ipynb    # My worked solutions
-├── INSTRUCTIONS.md      # Homework questions and dataset, as published for the 2026 cohort
-├── README.md            # Objective, approach, and outcome for the homework
+├── README.md            # Objective, source link, approach, and outcome for the homework
 └── .ipynb_checkpoints/
 ```
 
@@ -46,6 +45,17 @@ projects/<project-name>/
 ```
 
 Shared datasets used across multiple homeworks live in the top-level [`datasets/`](datasets) folder and are referenced by each notebook using paths such as `../datasets/<file>.csv`.
+
+## Quick start
+
+See [`SETUP.md`](SETUP.md) for a reproducible environment setup using a Python virtual environment and pinned dependencies.
+
+## Repository conventions
+
+- Keep notebooks, generated artifacts, and local caches out of version control via [`.gitignore`](.gitignore).
+- Document each assignment with a brief objective, dataset, approach, and result in its own `README.md`.
+- Use the pinned versions in [`requirements.txt`](requirements.txt) when possible for consistent results.
+- Keep relative paths stable by running notebooks from the repository root.
 
 ## Course info
 

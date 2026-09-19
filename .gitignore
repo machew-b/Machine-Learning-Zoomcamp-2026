@@ -1,0 +1,48 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.venv/
+venv/
+env/
+
+# Jupyter notebooks
+.ipynb_checkpoints/
+**/.ipynb_checkpoints/
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Local environment and secrets
+.env
+.env.*
+
+# Model artifacts and outputs
+*.pkl
+*.joblib
+*.h5
+*.keras
+*.onnx
+*.bin
+models/
+artifacts/
+mlruns/
+wandb/
+outputs/
+logs/
+
+# Python packaging cache
+pip-wheel-metadata/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Local notebooks / temporary files
+*.tmp
+*.bak

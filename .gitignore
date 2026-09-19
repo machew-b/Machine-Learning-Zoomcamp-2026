@@ -30,6 +30,7 @@ Thumbs.db
 *.keras
 *.onnx
 *.bin
+!homework-05/pipeline.bin
 models/
 artifacts/
 mlruns/
@@ -46,3 +47,8 @@ pip-wheel-metadata/
 # Local notebooks / temporary files
 *.tmp
 *.bak
+
+# Homework 8 local dataset and generated histories
+homework-08/data/
+homework-08/data.zip
+homework-08/runs/

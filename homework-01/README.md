@@ -1,19 +1,31 @@
 # Homework 1: Introduction to Machine Learning
 
 - Status: Finished
-- Instructions: [`cohorts/2026/homework/01-intro/homework.md`](https://github.com/DataTalksClub/machine-learning-zoomcamp/blob/main/cohorts/2026/homework/01-intro/homework.md) in the course repo
+- Instructions: [`cohorts/2026/homework/01-intro/homework.md`](https://github.com/DataTalksClub/machine-learning-zoomcamp/blob/main/cohorts/2026/homework/01-intro/homework.md)
 
 ## Objective
 
-Build confidence with the course environment and basic pandas workflows by exploring a car fuel-efficiency dataset: checking library versions, counting records, inspecting categorical and numeric columns, and implementing a small linear regression by hand using the normal equation.
+This homework was about getting comfortable with the course workflow and the dataset. I inspected the fuel-efficiency data, checked the basic pandas operations, and implemented a small linear regression by hand using the normal equation.
 
 ## Dataset
 
-[`car_fuel_efficiency_2026.csv`](../datasets/car_fuel_efficiency_2026.csv) is the pinned 2026 release (10,000 rows × 11 columns). It was checksum-verified against the official course repo; see [`datasets/README.md`](../datasets/README.md).
+The data comes from [`car_fuel_efficiency_2026.csv`](../datasets/car_fuel_efficiency_2026.csv), which is the pinned 2026 release. I checked the dataset and the workbook against the repository references before using it.
 
 ## Approach
 
-I loaded the dataset with pandas and answered each question using targeted operations: `.shape`, `.nunique()`, `.isnull().sum()`, `.median()`/`.mode()`/`.fillna()`, and for Q7, a manual normal-equation implementation with NumPy (`(XᵀX)⁻¹Xᵀy`).
+I loaded the dataset with pandas and worked through the required checks: record counts, categorical coverage, missing-value counts, imputation behavior, and the hand-written normal-equation solution for the final regression step.
+
+## Verified results
+
+These are the values I recorded while working through the actual homework in the notebook:
+
+- Q1 pandas version: 3.0.5
+- Q2 number of records: 10,000
+- Q3 fuel types: 3
+- Q4 columns with missing values: `horsepower` and `acceleration`
+- Q5 maximum fuel efficiency in Asia: 41.2
+- Q6 horsepower median after imputation: 252.0
+- Q7 sum of weights from the normal equation: approximately 0.369
 
 ## Outcome
 
@@ -21,8 +33,8 @@ I loaded the dataset with pandas and answered each question using targeted opera
 |---|----------|--------|
 | 1 | Pandas version | 3.0.5 |
 | 2 | Records count | 10,000 |
-| 3 | Fuel types | 3 (Gasoline, Diesel, Hybrid) |
-| 4 | Columns with missing values | 2 (`horsepower`, `acceleration`) |
-| 5 | Max fuel efficiency, Asia | 41.2 |
-| 6 | Horsepower median after imputation | Decreased (254.0 → 252.0) |
-| 7 | Sum of weights (normal equation) | ≈ 0.369 |
+| 3 | Fuel types | 3 |
+| 4 | Columns with missing values | `horsepower`, `acceleration` |
+| 5 | Max fuel efficiency in Asia | 41.2 |
+| 6 | Horsepower median after imputation | 252.0 |
+| 7 | Sum of weights from the normal equation | 0.369 |

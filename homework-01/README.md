@@ -1,7 +1,8 @@
 # Homework 1: Introduction to Machine Learning
 
-**Status:** Finished
-**Instructions:** [`cohorts/2026/homework/01-intro/homework.md`](https://github.com/DataTalksClub/machine-learning-zoomcamp/blob/main/cohorts/2026/homework/01-intro/homework.md) in the course repo
+Status: Finished
+
+Instructions: [`cohorts/2026/homework/01-intro/homework.md`](https://github.com/DataTalksClub/machine-learning-zoomcamp/blob/main/cohorts/2026/homework/01-intro/homework.md) in the course repo
 
 ## Objective
 

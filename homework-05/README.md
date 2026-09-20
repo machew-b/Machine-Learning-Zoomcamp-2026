@@ -1,6 +1,6 @@
 # Homework 5: Deploying Machine Learning Models
 
-- Status: Finished
+- Status: Fully verified, including the Dockerized API check.
 - Instructions: [`cohorts/2026/homework/05-deployment/homework.md`](https://github.com/DataTalksClub/machine-learning-zoomcamp/tree/main/cohorts/2026/homework/05-deployment)
 
 ## Objective
@@ -31,7 +31,7 @@ The model was trained on [`course_lead_scoring_2026.csv`](../datasets/course_lea
 
 I ran this as a real local verification of the frozen 2026 course artifact. I created an isolated venv using the exact pinned dependency versions in `pyproject.toml` and confirmed the model output with the homework payloads. I also checked the API response from the provided FastAPI app and verified that the result matches the expected inference for the reference lead records.
 
-Docker itself was not available in this execution environment, so I am not claiming a literal container build or container run here. The Dockerfile and the app code were still checked against the official configuration, and the same model artifact and request payload were validated locally against the served API.
+I built and ran the Docker image using the canonical Dockerfile, ran the provided `q6_test.py` client against port `9696`, and checked the `/health` endpoint. The container returned `conversion_probability` `0.769799`, `conversion` `true`, and health status `ok` with the expected model checksum.
 
 ## Verified results
 
@@ -52,3 +52,9 @@ These values were obtained from the actual frozen model and the homework payload
 | 4 | Conversion probability from the served API | 0.770 |
 | 5 | Python base image in the Dockerfile | `python:3.11.15-slim-bookworm` |
 | 6 | Conversion probability for the same reference request | 0.770 |
+
+## Docker verification evidence
+
+The screenshot below shows the successful Q6 request and the `/health` response from the running container:
+
+![Docker Q6 verification](docker-q6-proof.png)

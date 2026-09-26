@@ -27,7 +27,7 @@ Q1 needed the actual model, so rather than assume Homework 5's number still appl
 | Q | Question | Answer |
 |---|----------|--------|
 | 1 | Local container `conversion_probability` | 0.770 (identical to Homework 5, same artifact) |
-| 2 | `kind`/`kubectl` versions | Not graded, run locally and note the output |
+| 2 | `kind`/`kubectl` versions | - `kind`: v0.29.0 go1.24.2 windows/amd64<br>- `kubectl` client: v1.36.1<br>- `kubectl` Kustomize: v5.8.1 |
 | 3 | Smallest deployable unit | Pod |
 | 4 | Default type of the `kubernetes` service | ClusterIP |
 | 5 | Command to load a local image into kind | `kind load docker-image` |

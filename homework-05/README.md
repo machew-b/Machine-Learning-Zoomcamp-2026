@@ -46,7 +46,7 @@ These values were obtained from the actual frozen model and the homework payload
 
 | Q | Question | Answer |
 |---|----------|--------|
-| 1 | `uv --version` | Local setup check, not graded |
+| 1 | `uv --version` | 0.12.19 |
 | 2 | Scikit-Learn version in the locked environment | 1.7.2 |
 | 3 | Conversion probability from the direct pickle load | 0.533 |
 | 4 | Conversion probability from the served API | 0.770 |

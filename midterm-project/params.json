@@ -1,25 +1,27 @@
 {
   "logistic_regression": {
-    "C": 0.5,
+    "C": 0.04661686413912769,
     "class_weight": "balanced"
   },
   "decision_tree": {
+    "class_weight": "balanced",
     "max_depth": 6,
-    "min_samples_leaf": 20
+    "min_samples_leaf": 93
   },
   "random_forest": {
-    "n_estimators": 300,
-    "max_depth": 12,
-    "min_samples_leaf": 3,
-    "max_features": "sqrt"
+    "class_weight": "balanced_subsample",
+    "max_depth": 7,
+    "max_features": 0.3,
+    "min_samples_leaf": 18,
+    "n_estimators": 367
   },
   "xgboost": {
-    "n_estimators": 300,
-    "learning_rate": 0.05,
-    "max_depth": 4,
-    "min_child_weight": 3,
-    "subsample": 0.8,
-    "colsample_bytree": 0.8,
-    "reg_lambda": 1.0
+    "colsample_bytree": 0.7699205456508366,
+    "learning_rate": 0.019950144748611585,
+    "max_depth": 6,
+    "min_child_weight": 7,
+    "n_estimators": 286,
+    "reg_lambda": 3.9693644104005226,
+    "subsample": 0.9521871356061031
   }
 }

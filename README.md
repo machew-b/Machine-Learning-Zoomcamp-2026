@@ -18,6 +18,12 @@ The table below tracks the homework folders that are present in this repository.
 | [Homework 9](homework-09) | Serverless Inference | Completed | 23 Nov 2026 |
 | [Homework 10](homework-10) | Kubernetes and Model Serving | Completed | 30 Nov 2026 |
 
+## Projects
+
+| Project | Topic | Status | Date submitted |
+|---------|-------|--------|----------------|
+| [Midterm project](midterm-project) | Online shopper purchase-intent prediction: an XGBoost model served with Flask, Docker and Kubernetes | Ready to submit | - |
+
 ## Repository layout
 
 Each homework folder contains its own writeup and the files needed to reproduce that assignment. The exact content varies by homework, but the usual structure is:
@@ -29,6 +35,8 @@ homework-0X/
 ├── supporting artifacts when needed
 └── verification output or proof files when required
 ```
+
+The [`midterm-project/`](midterm-project) folder is a self-contained project with its own README, notebook, training script, web service, Dockerfile and Kubernetes manifests.
 
 Shared datasets used across the course are stored in the top-level [`datasets/`](datasets) folder and are referenced by notebooks and scripts using relative paths.
 

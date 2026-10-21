@@ -32,7 +32,7 @@ def download(dest: Path | str = DEFAULT_DEST, url: str = URL, force: bool = Fals
     """Fetch the zip archive, extract the CSV to ``dest`` and return its path."""
     dest = Path(dest)
     if dest.exists() and not force:
-        print(f"Dataset already present: {dest}")
+        print(f"Dataset already present: {dest.name}")
         return dest
 
     print(f"Downloading {url}")
@@ -60,7 +60,7 @@ def download(dest: Path | str = DEFAULT_DEST, url: str = URL, force: bool = Fals
 
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_bytes(csv_bytes)
-    print(f"Saved {len(csv_bytes) / 1e6:.2f} MB to {dest}")
+    print(f"Saved {len(csv_bytes) / 1e6:.2f} MB to {dest.name}")
     return dest
 
 

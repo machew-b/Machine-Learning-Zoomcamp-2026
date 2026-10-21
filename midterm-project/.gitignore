@@ -1,0 +1,10 @@
+# downloaded dataset: re-created by `python download_data.py`
+data/
+
+# trained model: re-created by `python train.py` (and during `docker build`)
+model.bin
+
+__pycache__/
+*.pyc
+.venv/
+.ipynb_checkpoints/

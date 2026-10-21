@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shopper-intent
+  labels:
+    app: shopper-intent
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: shopper-intent
+  template:
+    metadata:
+      labels:
+        app: shopper-intent
+    spec:
+      containers:
+        - name: shopper-intent
+          image: shopper-intent:v1
+          imagePullPolicy: IfNotPresent   # the image is loaded into kind, not pulled from a registry
+          ports:
+            - containerPort: 9696
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "256Mi"
+            limits:
+              cpu: "1"
+              memory: "768Mi"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 9696
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 9696
+            initialDelaySeconds: 15
+            periodSeconds: 20

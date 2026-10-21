@@ -1,0 +1,5 @@
+# Everything in requirements.txt plus what is needed to run the notebook
+-r requirements.txt
+matplotlib==3.10.0
+seaborn==0.13.1
+jupyter==1.1.1

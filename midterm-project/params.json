@@ -1,0 +1,25 @@
+{
+  "logistic_regression": {
+    "C": 0.5,
+    "class_weight": "balanced"
+  },
+  "decision_tree": {
+    "max_depth": 6,
+    "min_samples_leaf": 20
+  },
+  "random_forest": {
+    "n_estimators": 300,
+    "max_depth": 12,
+    "min_samples_leaf": 3,
+    "max_features": "sqrt"
+  },
+  "xgboost": {
+    "n_estimators": 300,
+    "learning_rate": 0.05,
+    "max_depth": 4,
+    "min_child_weight": 3,
+    "subsample": 0.8,
+    "colsample_bytree": 0.8,
+    "reg_lambda": 1.0
+  }
+}

@@ -2,7 +2,7 @@
 
 **Midterm project · Machine Learning Zoomcamp 2026 (DataTalks.Club)**
 
-A machine-learning service that estimates, from the browsing behaviour recorded in one web session, how likely the visitor is to **make a purchase**. The model is trained on the UCI *Online Shoppers Purchasing Intention* dataset, exposed through a Flask REST API, packaged with Docker and ready to deploy on Kubernetes or Google Cloud Run.
+A machine-learning service that estimates, from the browsing behaviour recorded in one web session, how likely the visitor is to **make a purchase**. The model is trained on the UCI *Online Shoppers Purchasing Intention* dataset, exposed through a Flask REST API, packaged with Docker and deployed on a Kubernetes cluster (kind). Cloud Run instructions are included as an alternative.
 
 ```mermaid
 flowchart LR
@@ -71,13 +71,16 @@ midterm-project/
 ├── predict.py               Flask service that loads model.bin and serves /predict
 ├── predict_test.py          sends sample_session.json to a running service
 ├── download_data.py         downloads the dataset into data/
-├── params.json             tuned hyper-parameters per model (written by the notebook, read by train.py)
+├── params.json              tuned hyper-parameters per model (written by the notebook, read by train.py)
 ├── sample_session.json      example request body
 ├── requirements.txt         pinned runtime / training dependencies
 ├── requirements-dev.txt     + notebook dependencies (matplotlib, seaborn, jupyter)
 ├── Dockerfile               container image (trains the model while building)
 ├── reports/metrics.json     cross-validation and test metrics written by train.py
-└── deployment/k8s/          Kubernetes manifests (Deployment + Service)
+├── images/                  screenshots of the Kubernetes deployment
+└── deployment/
+    ├── k8s/                 Kubernetes manifests (Deployment + Service)
+    └── verification.md      terminal output of the Docker and Kubernetes tests
 ```
 
 Generated locally and not committed: `data/` (dataset) and `model.bin` (trained model).
@@ -254,7 +257,7 @@ docker run --rm -p 9696:9696 shopper-intent:v1
 python predict_test.py                    # in a second terminal
 ```
 
-The container listens on `$PORT` (default `9696`) and runs `gunicorn` as a non-root user.
+The container listens on `$PORT` (default `9696`) and runs `gunicorn` as a non-root user. Built and tested on 2026-10-21; the output is in [`deployment/verification.md`](deployment/verification.md).
 
 ## 9. Kubernetes (local cluster with kind)
 
@@ -265,15 +268,22 @@ kind create cluster --name shopper
 kind load docker-image shopper-intent:v1 --name shopper     # make the local image available to the cluster
 kubectl apply -f deployment/k8s/
 kubectl rollout status deployment/shopper-intent
+kubectl get pods,svc
 kubectl port-forward service/shopper-intent 8080:80          # keep this running
 python predict_test.py http://localhost:8080                 # in a second terminal
 ```
 
 Clean up with `kubectl delete -f deployment/k8s/` and `kind delete cluster --name shopper`.
 
-## 10. Cloud deployment (Google Cloud Run)
+**Deployment proof** (2026-10-21): both replicas are `1/1 Running` with no restarts, and a prediction sent through the Kubernetes service returns the same result as the standalone container. The full terminal output is in [`deployment/verification.md`](deployment/verification.md).
 
-The container honours the `$PORT` variable that Cloud Run injects, so the same image runs unchanged. Build and deploy straight from the `Dockerfile`:
+![kind cluster: rollout, running pods and service](images/kubernetes-deployment.png)
+
+![Prediction request sent through the Kubernetes service](images/kubernetes-predict-test.png)
+
+## 10. Cloud deployment (alternative: Google Cloud Run)
+
+The local kind cluster above is the deployment that was run and verified. The same image can also be hosted in the cloud: the container honours the `$PORT` variable that Cloud Run injects, so it runs unchanged. These commands deploy straight from the `Dockerfile` (not executed for this project):
 
 ```bash
 gcloud auth login
@@ -288,8 +298,6 @@ python predict_test.py https://<SERVICE_URL>
 ```
 
 Delete the service afterwards with `gcloud run services delete shopper-intent --region asia-southeast1`. Any other host that runs Docker images (Render, Fly.io, ...) works the same way.
-
-<!-- After deploying, add a screenshot of the test here, e.g. ![Cloud Run test](images/cloud-run-test.png) -->
 
 ## 11. Design decisions and limitations
 

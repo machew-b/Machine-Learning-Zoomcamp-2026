@@ -36,7 +36,7 @@ An online shop records thousands of browsing sessions, but only a small share of
 | | |
 |---|---|
 | Source | [UCI Machine Learning Repository, dataset 468](https://archive.ics.uci.edu/dataset/468) |
-| Size | 12,330 sessions (one row each), 17 features + target, ~1 MB |
+| Size | 12,330 sessions (one row each), 17 features + target, ~1 MB (12,205 unique sessions after removing duplicates) |
 | Target | `Revenue` (the session ended with a purchase) — about 15.5 % positives |
 | License | CC BY 4.0 |
 | Citation | Sakar, C.O., Polat, S.O., Katircioglu, M., Kastro, Y. (2019). *Real-time prediction of online shoppers' purchasing intention using multilayer perceptron and LSTM recurrent neural networks.* Neural Computing and Applications, 31, 6893–6908. |
@@ -71,11 +71,12 @@ midterm-project/
 ├── predict.py               Flask service that loads model.bin and serves /predict
 ├── predict_test.py          sends sample_session.json to a running service
 ├── download_data.py         downloads the dataset into data/
-├── params.json              hyper-parameters per model (written by the notebook, read by train.py)
+├── params.json             tuned hyper-parameters per model (written by the notebook, read by train.py)
 ├── sample_session.json      example request body
 ├── requirements.txt         pinned runtime / training dependencies
 ├── requirements-dev.txt     + notebook dependencies (matplotlib, seaborn, jupyter)
 ├── Dockerfile               container image (trains the model while building)
+├── reports/metrics.json     cross-validation and test metrics written by train.py
 └── deployment/k8s/          Kubernetes manifests (Deployment + Service)
 ```
 
@@ -85,7 +86,7 @@ Generated locally and not committed: `data/` (dataset) and `model.bin` (trained 
 
 **Data preparation** (`common.clean_dataset`)
 * parse the boolean columns, normalise the month names (the raw file spells *June* in full, every other month is abbreviated);
-* **drop duplicated sessions** before splitting, so that identical rows cannot end up in both train and test;
+* **drop duplicated sessions** (125 rows) before splitting, so that identical rows cannot end up in both train and test;
 * integer-coded columns (`OperatingSystems`, `Browser`, `Region`, `TrafficType`) are treated as categories.
 
 **Exploratory data analysis** (`notebook.ipynb`, sections 1–3)
@@ -111,32 +112,57 @@ Generated locally and not committed: `data/` (dataset) and `model.bin` (trained 
 
 ## 5. Results
 
-The metrics of the trained model are produced by the scripts rather than copied by hand:
+All numbers come from `python train.py` (saved in `reports/metrics.json`; seed 42, scikit-learn 1.7.2, XGBoost 3.2.0). After removing duplicates there are 12,205 unique sessions: 9,764 for training / cross-validation and 2,441 held out for the final test, with a 15.6 % purchase rate in both parts.
 
-* `python train.py` prints the cross-validation table and the test-set metrics, and saves them to `reports/metrics.json`;
-* the notebook (sections 4–7) shows the baseline vs. tuned comparison, ROC/PR curves, the confusion matrix and the feature importances.
+**Model comparison**: 5-fold stratified cross-validation on the training part, using the hyper-parameters found by the notebook's randomised search (`params.json`).
+
+| Model | ROC-AUC (mean ± std) | PR-AUC |
+|---|---|---|
+| Logistic regression | 0.9202 ± 0.0065 | 0.670 |
+| Decision tree | 0.9246 ± 0.0062 | 0.710 |
+| Random forest | 0.9336 ± 0.0040 | 0.752 |
+| **XGBoost (selected)** | **0.9342 ± 0.0044** | **0.755** |
+
+XGBoost and the random forest are practically tied (the gap is far smaller than one standard deviation); XGBoost was kept because it has the best CV ROC-AUC and PR-AUC.
+
+**Final evaluation on the held-out test set** (2,441 sessions, 382 purchases, used once)
+
+| Decision threshold | ROC-AUC | PR-AUC | Precision | Recall | F1 |
+|---|---|---|---|---|---|
+| **0.301 (tuned on out-of-fold predictions)** | 0.937 | 0.757 | 0.634 | 0.757 | 0.690 |
+| 0.5 (default) | 0.937 | 0.757 | 0.731 | 0.634 | 0.679 |
+
+Confusion matrix at the tuned threshold: 1,892 true negatives, 167 false positives, 93 false negatives, 289 true positives.
+
+**Reading the results**
+* The model ranks sessions well: ROC-AUC 0.937, and a PR-AUC of 0.757 against a purchase rate of only 0.156.
+* At the tuned threshold it finds 289 of the 382 sessions that ended in a purchase (76 % recall), and 63 % of the sessions it flags really convert, compared with 15.6 % overall.
+* The threshold is a business decision: a lower one catches more buyers but flags more sessions that would not have converted. Raise it when a wasted discount is costly, lower it when a missed sale is costly.
+* Selected XGBoost hyper-parameters: `n_estimators=286`, `learning_rate=0.020`, `max_depth=6`, `min_child_weight=7`, `subsample=0.952`, `colsample_bytree=0.770`, `reg_lambda=3.97`.
+
+The notebook (sections 4–7) shows the same comparison together with the ROC/PR curves, the confusion matrix and the feature importances.
 
 ## 6. Reproducing the project
 
-You need **Python 3.11+** (NumPy 2.3 requires it). All commands are run from the `midterm-project` folder.
+Use **Python 3.11**, the version used for development and in the `Dockerfile`. NumPy 2.3 needs at least 3.11, and the pinned pandas version has no prebuilt package for Python 3.14, so installing on 3.14 fails. All commands are run from the `midterm-project` folder.
 
 ### 6.1 Environment
 
 ```bash
 # macOS / Linux
-python -m venv .venv
+python3.11 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements-dev.txt     # use requirements.txt if you only want to train/serve
 ```
 
 ```powershell
 # Windows PowerShell
-python -m venv .venv
+py -3.11 -m venv .venv
 .venv\Scripts\Activate.ps1
 pip install -r requirements-dev.txt
 ```
 
-With [uv](https://docs.astral.sh/uv/): `uv venv --python 3.11` then `uv pip install -r requirements-dev.txt`.
+With [uv](https://docs.astral.sh/uv/): `uv venv --python 3.11`, activate the environment, then `uv pip install -r requirements-dev.txt`.
 
 ### 6.2 Data
 
@@ -207,7 +233,7 @@ Invoke-RestMethod -Method Post -Uri http://localhost:9696/predict -ContentType "
 {
   "purchase_probability": 0.8123,
   "will_purchase": true,
-  "threshold": 0.3321,
+  "threshold": 0.3012,
   "model": "xgboost"
 }
 ```

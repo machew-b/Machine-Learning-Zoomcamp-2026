@@ -22,7 +22,7 @@ The table below tracks the homework folders that are present in this repository.
 
 | Project | Topic | Status | Date submitted |
 |---------|-------|--------|----------------|
-| [Midterm project](midterm-project) | Online shopper purchase-intent prediction: an XGBoost model served with Flask, Docker and Kubernetes | Ready to submit | - |
+| [Midterm project](midterm-project) | Online shopper purchase-intent prediction: an XGBoost model served with Flask, Docker and Kubernetes | Completed | 17 Nov 2026 |
 
 ## Repository layout
 

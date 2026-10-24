@@ -1,0 +1,13 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# Downloaded data and trained model: recreated by download_data.py and train.py
+data/
+model.bin
+
+# OS files
+.DS_Store
+Thumbs.db

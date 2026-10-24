@@ -1,0 +1,5 @@
+# Everything needed to work on the project locally: runtime + notebook tooling.
+-r requirements.txt
+matplotlib==3.10.0
+seaborn==0.13.1
+jupyter==1.1.1

@@ -1,0 +1,13 @@
+{
+  "date": "2018-07-18",
+  "hour": 18,
+  "holiday": false,
+  "temperature_c": 28.4,
+  "humidity_pct": 55,
+  "wind_speed_ms": 1.8,
+  "visibility_10m": 1800,
+  "dew_point_c": 18.5,
+  "solar_radiation_mj_m2": 0.45,
+  "rainfall_mm": 0,
+  "snowfall_cm": 0
+}

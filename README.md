@@ -23,6 +23,7 @@ The table below tracks the homework folders that are present in this repository.
 | Project | Topic | Status | Date submitted |
 |---------|-------|--------|----------------|
 | [Midterm project](midterm-project) | Online shopper purchase-intent prediction: an XGBoost model served with Flask, Docker and Kubernetes | Completed | 17 Nov 2026 |
+| [Capstone 1](capstone-1) | Seoul bike-sharing demand forecast: scikit-learn regression models served with Flask, Docker and Kubernetes | In progress | 5 Jan 2027 |
 
 ## Repository layout
 
@@ -36,7 +37,7 @@ homework-0X/
 └── verification output or proof files when required
 ```
 
-The [`midterm-project/`](midterm-project) folder is a self-contained project with its own README, notebook, training script, web service, Dockerfile and Kubernetes manifests.
+The [`midterm-project/`](midterm-project) and [`capstone-1/`](capstone-1) folders are self-contained projects, each with its own README, notebook, training script, web service, Dockerfile and Kubernetes manifests.
 
 Shared datasets used across the course are stored in the top-level [`datasets/`](datasets) folder and are referenced by notebooks and scripts using relative paths.
 

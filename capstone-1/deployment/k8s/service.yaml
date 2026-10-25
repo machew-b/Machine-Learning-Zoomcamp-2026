@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: seoul-bike-demand
+  labels:
+    app: seoul-bike-demand
+spec:
+  type: ClusterIP
+  selector:
+    app: seoul-bike-demand
+  ports:
+    - name: http
+      port: 80
+      targetPort: 9696

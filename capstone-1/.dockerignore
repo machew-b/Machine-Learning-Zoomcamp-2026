@@ -1,0 +1,16 @@
+.venv
+.git
+__pycache__
+*.pyc
+.ipynb_checkpoints
+data
+model.bin
+reports
+tests
+images
+deployment
+notebook.ipynb
+README.md
+requirements-dev.txt
+predict_test.py
+sample_request.json

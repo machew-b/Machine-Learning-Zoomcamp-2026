@@ -5,7 +5,8 @@ Machine Learning Zoomcamp 2026, **Capstone 1**. A regression model and a small w
 - **Data:** UCI *Seoul Bike Sharing Demand*, 8,760 hourly records (1 December 2017 to 30 November 2018), CC BY 4.0.
 - **Models compared:** ridge regression, decision tree, random forest and gradient-boosted trees, with hyper-parameter tuning.
 - **Validation:** chronological hold-out plus blocked cross-validation, because hourly data from neighbouring hours must not be split randomly.
-- **Serving:** Flask API (single and batch prediction), Docker image and Kubernetes manifests for a local `kind` cluster.
+- **Result:** gradient-boosted trees were selected; on the hold-out period (11 September to 30 November 2018) they forecast hourly rentals with an RMSE of 320.8 bikes per hour (R² 0.71), against 434.7 for the average of the same hour and day type.
+- **Serving:** Flask API (single and batch prediction), Docker image and Kubernetes manifests, tested in Docker and on a local `kind` cluster.
 
 ## Problem description
 
@@ -19,7 +20,7 @@ This project answers one question:
 
 ## Dataset
 
-[UCI Machine Learning Repository, Seoul Bike Sharing Demand (id 560)](https://archive.ics.uci.edu/dataset/560/seoul+bike+sharing+demand), licence CC BY 4.0, DOI [10.24432/C5F62R](https://doi.org/10.24432/C5F62R). One row per hour, 365 days x 24 hours = 8,760 rows, 14 columns, no missing values according to the UCI description.
+[UCI Machine Learning Repository, Seoul Bike Sharing Demand (id 560)](https://archive.ics.uci.edu/dataset/560/seoul+bike+sharing+demand), licence CC BY 4.0, DOI [10.24432/C5F62R](https://doi.org/10.24432/C5F62R). One row per hour, 365 days x 24 hours = 8,760 rows, 14 columns. The notebook confirms that there are no missing values and no duplicates, and that every day has all 24 hours.
 
 | Column | Meaning | Unit |
 |---|---|---|
@@ -45,8 +46,8 @@ The details, with the evidence, are in [`notebook.ipynb`](notebook.ipynb); the l
 **Data preparation and cleaning**
 - The file is latin-1 encoded (the degree sign is a single byte), dates are `dd/mm/yyyy`, and the headers contain units. The loader normalises all of this and stops with a clear message if a column or category is not what it expects.
 - Exact duplicate rows are dropped.
-- Hours in which the bike system was switched off are dropped: the count is 0 there because bikes could not be rented, which is not demand. The model forecasts demand *given that the service operates*.
-- A relative humidity of exactly 0 % does not occur in Seoul and is treated as a missing reading inside the pipeline (median imputation, fitted inside each cross-validation fold), so training and serving behave identically.
+- Hours in which the bike system was switched off are dropped (295 hours, 3.4 % of the file: 12 whole days and one partial day). The count is 0 in all of them because bikes could not be rented, which is not demand. The model forecasts demand *given that the service operates*.
+- A relative humidity of exactly 0 % does not occur in Seoul and is treated as a missing reading inside the pipeline (median imputation, fitted inside each cross-validation fold), so training and serving behave identically. It affects 17 hours of the file.
 
 **Features** (the first step of the saved scikit-learn `Pipeline`, so the service receives only raw inputs): hour, day of the week, weekend flag, public-holiday flag, a combined "day off" flag, a combined hour-and-day-type category (weekday commuting peaks differ from weekend leisure riding), rain and snow flags, and the eight weather variables. The season label is **not** used: it is a coarse proxy for temperature and sunshine, and almost all autumn days fall in the hold-out period.
 
@@ -56,17 +57,41 @@ The details, with the evidence, are in [`notebook.ipynb`](notebook.ipynb); the l
 - *Metrics:* RMSE (used to select models), MAE, R² and WAPE (total absolute error divided by total demand). Predictions are clipped at 0, exactly as the service returns them.
 - *Reference predictors:* the training mean, and the average demand of the same hour and day type, which is what a planner would use without a weather forecast.
 
-**Models and tuning.** Ridge regression (fitted on `log(1 + count)` or on the raw count, whichever cross-validates better), decision tree, random forest and gradient-boosted trees (`HistGradientBoostingRegressor`). Ridge uses a grid over the regularisation strength; the tree models use `RandomizedSearchCV` with a fixed seed. For every model the better of the starting values and the searched values is kept. The notebook writes the result to [`params.json`](params.json), and [`train.py`](train.py) re-runs the cross-validation with those parameters, selects the model with the lowest RMSE, scores it once on the test period and **refits it on all days** to produce the deployed `model.bin`.
+**Models and tuning.** Ridge regression (fitted on `log(1 + count)` or on the raw count, whichever cross-validates better; the raw count won, with a cross-validated RMSE of 354.1 against 413.7), decision tree, random forest and gradient-boosted trees (`HistGradientBoostingRegressor`). Ridge uses a grid over the regularisation strength; the tree models use `RandomizedSearchCV` with a fixed seed. For every model the better of the starting values and the searched values is kept. The notebook writes the result to [`params.json`](params.json), and [`train.py`](train.py) re-runs the cross-validation with those parameters, selects the model with the lowest RMSE, scores it once on the test period and **refits it on all days** to produce the deployed `model.bin`.
 
 > The reported test metrics belong to the model trained on the training period only. The deployed model is refit on the full year with the same hyper-parameters (more data, and the autumn days it would otherwise never see), so it can no longer be scored on the test period.
 
 ## Results
 
-The numbers come from `python train.py` and are stored in [`reports/metrics.json`](reports/metrics.json) (the tables below are `reports/results.md`). All values are bikes per hour except R² and WAPE.
+The numbers come from `python train.py` and are stored in [`reports/metrics.json`](reports/metrics.json); the two tables are `reports/results.md`. All values are bikes per hour except R² and WAPE.
 
-<!-- RESULTS:START -->
-_The results tables are inserted here after the first training run: paste the contents of `reports/results.md`._
-<!-- RESULTS:END -->
+### Cross-validation on the training period (blocked 5-fold, bikes per hour)
+
+| Model | CV RMSE (mean +/- std) | CV MAE | CV R2 |
+|---|---|---|---|
+| ridge | 354.1 +/- 17.4 | 255.1 | 0.694 |
+| decision_tree | 241.9 +/- 21.4 | 149.0 | 0.858 |
+| random_forest | 197.4 +/- 21.0 | 122.1 | 0.905 |
+| hist_gradient_boosting (selected) | 187.7 +/- 25.3 | 114.5 | 0.914 |
+
+### Hold-out test period (evaluated once)
+
+| Predictor | RMSE | MAE | R2 | WAPE |
+|---|---|---|---|---|
+| hist_gradient_boosting (selected model) | 320.8 | 242.9 | 0.713 | 27.1 % |
+| average of the same hour and day type | 434.7 | 317.7 | 0.473 | 35.5 % |
+| overall training average | 633.8 | 490.9 | -0.120 | 54.9 % |
+
+The selected model uses a learning rate of 0.031, 670 boosting iterations, 31 leaves per tree, at least 5 samples per leaf and an L2 penalty of 0.015 (all values are in [`params.json`](params.json)).
+
+**Reading the results**
+- **Gradient boosting wins and the linear model is far behind.** Boosted trees and the random forest are close (RMSE 187.7 and 197.4), the single tree is clearly worse (241.9) and ridge regression is the weakest (354.1), as expected for a demand curve whose hourly shape depends on the day type. For ridge the raw count beat `log(1 + count)` (354.1 against 413.7).
+- **The weather is worth modelling.** The planner's alternative without a forecast, the average of the same hour and day type, has a cross-validated RMSE of 538.4 against 187.7 for the model. On the hold-out period the model lowers the RMSE of that reference from 434.7 to 320.8 (-26 %) and its MAE from 317.7 to 242.9 (-24 %).
+- **The hold-out period is much harder than the cross-validation folds** (RMSE 320.8 and R² 0.713, against 187.7 and 0.914), and most of the extra error is a *level shift*, not noise: the model under-forecasts almost everywhere (on average about 180 bikes per hour on dry hours, 207 on working days and 328 in the 16:00 to 19:00 window). The test days average about 895 rentals per hour against about 688 in the training period, and the training period contains only ten days of autumn. With a single year of data a seasonal effect cannot be separated from growth of the service. The deployed model is refit on all days and has therefore seen autumn, but how well it forecasts the next autumn cannot be measured with this data.
+- **Where it errs.** In absolute terms the errors are largest in the commuting peaks (MAE 314 from 06:00 to 09:00, 399 from 16:00 to 19:00) and smallest at night; relative to demand (WAPE) midday is best (21.5 %). Rainy hours are the weakest spot: the model over-forecasts them (+62 on average, WAPE 96 %, only 74 hours).
+- **What drives the forecast** (permutation importance on the test period, the increase of the RMSE when one input is shuffled): hour of the day (+302), temperature (+195), solar radiation (+91), day of the week (+57), humidity (+48), rainfall (+27) and public holiday (+17). Visibility, dew point (largely redundant with temperature and humidity), snowfall and wind speed add little or nothing.
+- **Shuffled folds flatter the model.** With shuffled instead of blocked folds the cross-validated RMSE drops from 187.7 to 155.9 (-17 %): the optimism that the blocked scheme avoids.
+- **The data are as clean as UCI states**, apart from the cases the cleaning rules handle (295 closed hours, 17 hours with a humidity of 0 %). On working days demand peaks at 18:00 (about 1,660 bikes per hour on average in the training period) and is lowest at 04:00 (about 115); on days off it peaks at 17:00 (about 1,050).
 
 ## Repository layout
 
@@ -129,7 +154,7 @@ It downloads the official zip from UCI, saves `data/SeoulBikeData.csv` and check
 Open `notebook.ipynb` in VS Code or Jupyter and run all cells, or execute it from the command line:
 
 ```powershell
-jupyter nbconvert --to notebook --execute --inplace --ExecutePreprocessor.timeout=-1 notebook.ipynb
+python -m nbconvert --to notebook --execute --inplace --ExecutePreprocessor.timeout=-1 notebook.ipynb
 ```
 
 It takes several minutes, mostly for the hyper-parameter searches, and writes `params.json`. On Windows, red `KeyError ... joblib_memmapping_folder` messages at the end are harmless cleanup noise from joblib; success is the line saying the notebook was written.
@@ -178,6 +203,12 @@ python -m unittest discover -s tests -v
 
 The tests use a synthetic data set that mimics the format of the real file (header, encoding, date format, categories), so they need neither the download nor an internet connection. They cover the loader and cleaning rules, the chronological split, the feature engineering, the agreement of the training and serving paths, the input validation, `train.py`, the download script and every API endpoint. The synthetic numbers are meaningless and are never used for results.
 
+### Troubleshooting
+
+- `Jupyter command ... jupyter.exe not found` on Windows: use `python -m nbconvert ...` as shown in step 3.
+- `ImportError: DLL load failed while importing _imaging: An Application Control policy has blocked this file` (Pillow, which matplotlib needs): Windows Application Control blocked a freshly installed file. The unit tests, `train.py` and the service do not use matplotlib; for the notebook, use an environment in which matplotlib already imports, for example another project's virtual environment with the same pinned versions.
+- At the end of the notebook run, `KeyError ... joblib_memmapping_folder` messages and a seaborn `FutureWarning` about `SeriesGroupBy.grouper` are harmless.
+
 ## API
 
 | Method and path | Purpose |
@@ -211,10 +242,10 @@ The tests use a synthetic data set that mimics the format of the real file (head
  "rainfall_mm": 0, "snowfall_cm": 0}
 ```
 
-The response has this shape (the number is illustrative, the model returns its own forecast):
+The response to that request, from the Docker image:
 
 ```json
-{"predicted_rentals": 1234.5, "unit": "bikes per hour", "model": "<selected model>", "warnings": []}
+{"predicted_rentals": 2902.7, "unit": "bikes per hour", "model": "hist_gradient_boosting", "warnings": []}
 ```
 
 - Validation is strict: unknown or missing fields, wrong types (a number sent as text, a boolean sent as a number), out-of-range values and impossible dates return **HTTP 400** with the list of problems in `details`. Errors, including 404 and 405, are always JSON.
@@ -248,10 +279,11 @@ kind delete cluster --name seoul-bike                               # when finis
 
 [`deployment/k8s/deployment.yaml`](deployment/k8s/deployment.yaml) runs two replicas with readiness and liveness probes on `/health` and resource requests and limits. [`deployment/k8s/service.yaml`](deployment/k8s/service.yaml) exposes them inside the cluster on port 80.
 
-<!-- After running the steps above, add screenshots to images/ and uncomment these lines:
+Both pods are `Running` and ready, and the smoke test passes through the port-forward:
+
 ![kubectl get pods](images/k8s-pods.png)
+
 ![predict_test.py through the port-forward](images/k8s-predict.png)
--->
 
 ### Public cloud (Google Cloud Run), documented but not run
 
@@ -262,6 +294,16 @@ gcloud run deploy seoul-bike-demand --source . --region asia-southeast1 --memory
 ```
 
 The command prints the service URL; `python predict_test.py <that URL>` checks it.
+
+## Verification
+
+Run on a Windows machine with Python 3.11 and the pinned package versions (numpy 2.3.3, pandas 2.3.2, scikit-learn 1.7.2, Flask 3.1.3):
+
+- `python -m unittest discover -s tests`: 85 tests, all passing.
+- `python download_data.py`, `notebook.ipynb` (all cells executed, outputs saved in the notebook) and `python train.py` ran end to end on the real data.
+- `python predict_test.py` passes against the local service, against the Docker container (reported `healthy`) and against the Kubernetes service through a port-forward. All three return the same forecasts (for example 2902.7 bikes per hour for `sample_request.json`).
+
+Commands, outputs and versions are in [`deployment/verification.md`](deployment/verification.md).
 
 ## Design decisions and limitations
 
@@ -277,7 +319,7 @@ The command prints the service URL; `python predict_test.py <that URL>` checks i
 - The weather in the dataset is *observed* weather. With a real forecast as input, forecast errors add to the model's error; the scores here assume accurate weather.
 - Citywide hourly totals only: no stations, no locations.
 - Forecasts are conditional on the system operating, and the public-holiday flag must be supplied by the client.
-- The hold-out period is a single block of days (mostly autumn). The scores say how well the model forecasts that period, not every season.
+- The hold-out period is a single block of days (mostly autumn). The scores say how well the model forecasts that period, not every season, and the model under-forecasts that period (see Results). The deployed model has seen autumn, but its autumn accuracy cannot be measured with one year of data.
 
 ## Evaluation criteria
 
@@ -291,7 +333,7 @@ The command prints the service URL; `python predict_test.py <that URL>` checks i
 | Model deployment | [`predict.py`](predict.py), [API](#api), [`predict_test.py`](predict_test.py) |
 | Dependency and environment management | [`requirements.txt`](requirements.txt), [`requirements-dev.txt`](requirements-dev.txt), [create the environment](#1-create-the-environment) |
 | Containerization | [`Dockerfile`](Dockerfile), [Docker](#docker) |
-| Cloud deployment | [`deployment/k8s/`](deployment/k8s/), [Kubernetes](#kubernetes-local-kind-cluster) |
+| Cloud deployment | [`deployment/k8s/`](deployment/k8s/), [Kubernetes](#kubernetes-local-kind-cluster) with screenshots, [`deployment/verification.md`](deployment/verification.md) |
 
 ## Data licence and citation
 

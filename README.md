@@ -23,7 +23,7 @@ The table below tracks the homework folders that are present in this repository.
 | Project | Topic | Status | Date submitted |
 |---------|-------|--------|----------------|
 | [Midterm project](midterm-project) | Online shopper purchase-intent prediction: an XGBoost model served with Flask, Docker and Kubernetes | Completed | 17 Nov 2026 |
-| [Capstone 1](capstone-1) | Seoul bike-sharing demand forecast: scikit-learn regression models served with Flask, Docker and Kubernetes | In progress | 5 Jan 2027 |
+| [Capstone 1](capstone-1) | Seoul bike-sharing demand forecast: scikit-learn regression models served with Flask, Docker and Kubernetes | Completed | 5 Jan 2027 |
 
 ## Repository layout
 

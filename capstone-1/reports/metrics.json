@@ -1,0 +1,101 @@
+{
+  "seed": 42,
+  "data": {
+    "rows_raw": 8760,
+    "duplicate_rows_dropped": 0,
+    "non_functioning_rows_dropped": 295,
+    "rows_dropped_missing_key_fields": 0,
+    "rows_clean": 8465,
+    "first_day": "2017-12-01",
+    "last_day": "2018-11-30",
+    "train_rows": 6768,
+    "test_rows": 1697,
+    "test_first_day": "2018-09-11"
+  },
+  "validation": {
+    "test_split": "chronological, last 20 % of the calendar days",
+    "cv": "GroupKFold(5) over 7-day blocks, training period only"
+  },
+  "params_status": "tuned",
+  "cv": {
+    "ridge": {
+      "rmse_mean": 354.10453765335177,
+      "rmse_std": 17.373184103209542,
+      "mae_mean": 255.0861078906888,
+      "mae_std": 14.733374464826152,
+      "r2_mean": 0.6936874970620587,
+      "r2_std": 0.04837815082327668,
+      "wape_mean": 0.37369683104947693,
+      "wape_std": 0.036671445836407926
+    },
+    "decision_tree": {
+      "rmse_mean": 241.87664934598652,
+      "rmse_std": 21.38200210963724,
+      "mae_mean": 148.96435512762068,
+      "mae_std": 17.848304560400855,
+      "r2_mean": 0.8579640929674606,
+      "r2_std": 0.01996365461203323,
+      "wape_mean": 0.2167720281560967,
+      "wape_std": 0.01777058179653882
+    },
+    "random_forest": {
+      "rmse_mean": 197.36682389213541,
+      "rmse_std": 20.992819308854095,
+      "mae_mean": 122.05774718909024,
+      "mae_std": 14.753901443028669,
+      "r2_mean": 0.9054975070580532,
+      "r2_std": 0.015209566502930878,
+      "wape_mean": 0.17787724626401477,
+      "wape_std": 0.017786838594048643
+    },
+    "hist_gradient_boosting": {
+      "rmse_mean": 187.6654505586728,
+      "rmse_std": 25.31926860296069,
+      "mae_mean": 114.46839013703149,
+      "mae_std": 17.121508134063564,
+      "r2_mean": 0.9143534389598639,
+      "r2_std": 0.01820869491352759,
+      "wape_mean": 0.1665232170529667,
+      "wape_std": 0.019928092640743647
+    }
+  },
+  "selected_model": "hist_gradient_boosting",
+  "selected_params": {
+    "learning_rate": 0.03128952700635977,
+    "max_iter": 670,
+    "max_leaf_nodes": 31,
+    "min_samples_leaf": 5,
+    "l2_regularization": 0.015314189711654769
+  },
+  "test": {
+    "selected_model": {
+      "rmse": 320.8238890193707,
+      "mae": 242.9191079498735,
+      "r2": 0.7130859303533204,
+      "wape": 0.27147447985868634
+    },
+    "baseline_hour_daytype_mean": {
+      "rmse": 434.67060700283906,
+      "mae": 317.6819305572224,
+      "r2": 0.4733294980596713,
+      "wape": 0.3550257432870265
+    },
+    "baseline_training_mean": {
+      "rmse": 633.7748312586116,
+      "mae": 490.87957637312957,
+      "r2": -0.1196658289697452,
+      "wape": 0.5485829369036139
+    }
+  },
+  "final_model": {
+    "refit_on": "all cleaned rows (training + test period)",
+    "rows": 8465,
+    "note": "test metrics above were measured on a model trained on the training period only"
+  },
+  "versions": {
+    "python": "3.11.15",
+    "numpy": "2.3.3",
+    "pandas": "2.3.2",
+    "scikit-learn": "1.7.2"
+  }
+}

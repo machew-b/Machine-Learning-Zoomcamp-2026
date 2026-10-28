@@ -1,27 +1,39 @@
 {
   "_meta": {
-    "status": "defaults",
-    "note": "Starting values only. The last cell of notebook.ipynb overwrites this file with the tuned values (status: tuned)."
+    "status": "tuned",
+    "method": "GridSearchCV for ridge (log and raw target), RandomizedSearchCV for the tree models; the better of the searched and the starting values is kept; scoring: RMSE of predictions clipped at 0; GroupKFold(5) over 7-day blocks of the training period",
+    "n_iter": {
+      "decision_tree": 30,
+      "random_forest": 15,
+      "hist_gradient_boosting": 30
+    },
+    "kept": {
+      "ridge": "searched",
+      "decision_tree": "searched",
+      "random_forest": "searched",
+      "hist_gradient_boosting": "searched"
+    },
+    "seed": 42
   },
   "ridge": {
-    "alpha": 1.0,
-    "log_target": true
+    "alpha": 0.01,
+    "log_target": false
   },
   "decision_tree": {
-    "max_depth": 10,
-    "min_samples_leaf": 10
+    "max_depth": 13,
+    "min_samples_leaf": 12
   },
   "random_forest": {
-    "n_estimators": 300,
-    "max_depth": 20,
+    "max_depth": 25,
+    "max_features": 0.7637655990477874,
     "min_samples_leaf": 3,
-    "max_features": 0.6
+    "n_estimators": 283
   },
   "hist_gradient_boosting": {
-    "learning_rate": 0.08,
-    "max_iter": 400,
+    "l2_regularization": 0.015314189711654769,
+    "learning_rate": 0.03128952700635977,
+    "max_iter": 670,
     "max_leaf_nodes": 31,
-    "min_samples_leaf": 20,
-    "l2_regularization": 0.1
+    "min_samples_leaf": 5
   }
 }

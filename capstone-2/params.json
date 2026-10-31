@@ -1,0 +1,27 @@
+{
+  "_meta": {
+    "status": "defaults",
+    "note": "Default hyper-parameters. Run notebook.ipynb to tune them; its last code cell overwrites this file with status 'tuned'."
+  },
+  "logistic_regression": {
+    "C": 0.1
+  },
+  "decision_tree": {
+    "max_depth": 6,
+    "min_samples_leaf": 100
+  },
+  "random_forest": {
+    "n_estimators": 200,
+    "max_depth": 14,
+    "min_samples_leaf": 30,
+    "max_features": "sqrt",
+    "max_samples": 0.5
+  },
+  "hist_gradient_boosting": {
+    "learning_rate": 0.05,
+    "max_iter": 200,
+    "max_leaf_nodes": 15,
+    "min_samples_leaf": 100,
+    "l2_regularization": 1.0
+  }
+}

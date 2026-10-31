@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: readmission-risk
+  labels:
+    app: readmission-risk
+spec:
+  type: ClusterIP
+  selector:
+    app: readmission-risk
+  ports:
+    - name: http
+      port: 80
+      targetPort: 9696

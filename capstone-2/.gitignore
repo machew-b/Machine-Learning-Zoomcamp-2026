@@ -1,0 +1,16 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# Downloaded data and trained model: recreated by download_data.py and train.py
+data/
+model.bin
+
+# Output of the notebook's fast smoke-test mode (never the real parameters)
+params_fast.json
+
+# OS files
+.DS_Store
+Thumbs.db

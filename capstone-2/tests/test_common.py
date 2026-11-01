@@ -140,12 +140,39 @@ class SplitTests(unittest.TestCase):
         train, test = common.grouped_stratified_split(y, g)
         self.assertFalse(set(g[train]) & set(g[test]))
         self.assertTrue(np.all(train ^ test))
-        self.assertAlmostEqual(test.mean(), 0.2, delta=0.05)
+        self.assertAlmostEqual(test.mean(), 0.2, delta=0.02)
         shares_train = np.bincount(y[train], minlength=3) / train.sum()
         shares_test = np.bincount(y[test], minlength=3) / test.sum()
-        np.testing.assert_allclose(shares_train, shares_test, atol=0.03)
+        np.testing.assert_allclose(shares_train, shares_test, atol=0.01)
         again = common.grouped_stratified_split(y, g)
         np.testing.assert_array_equal(test, again[1])
+
+    def test_folds_are_balanced_for_many_sizes_and_seeds(self):
+        for n_rows, seed in ((600, 1), (2500, 2), (6000, 3), (1500, 4)):
+            data, _ = clean_frame(n_rows, seed)
+            y, g = data[common.TARGET].to_numpy(), data[common.GROUP_COLUMN].to_numpy()
+            folds = common.assign_group_folds(y, g)
+            overall = np.bincount(y, minlength=3) / len(y)
+            for fold in range(common.N_SPLITS):
+                inside = folds == fold
+                self.assertAlmostEqual(inside.mean(), 1 / common.N_SPLITS, delta=0.03, msg=(n_rows, fold))
+                shares = np.bincount(y[inside], minlength=3) / inside.sum()
+                np.testing.assert_allclose(shares, overall, atol=0.02, err_msg=str((n_rows, fold)))
+
+    def test_fold_assignment_depends_on_the_seed_only(self):
+        data, _ = clean_frame()
+        y, g = data[common.TARGET].to_numpy(), data[common.GROUP_COLUMN].to_numpy()
+        np.testing.assert_array_equal(common.assign_group_folds(y, g, seed=5), common.assign_group_folds(y, g, seed=5))
+        self.assertFalse(np.array_equal(common.assign_group_folds(y, g, seed=5), common.assign_group_folds(y, g, seed=6)))
+
+    def test_fold_assignment_input_checks(self):
+        with self.assertRaises(ValueError):
+            common.assign_group_folds([0, 1, 2], [1, 1], 5)
+        with self.assertRaises(ValueError):
+            common.assign_group_folds([0, 1, 2], [1, 1, 2], 5)       # fewer groups than folds
+        with self.assertRaises(ValueError):
+            list(common.grouped_cv_splitter().split(np.zeros(3), [0, 1, 2], None))
+        self.assertEqual(common.grouped_cv_splitter(3).get_n_splits(), 3)
 
     def test_cv_folds_never_split_a_patient(self):
         data, _ = clean_frame()

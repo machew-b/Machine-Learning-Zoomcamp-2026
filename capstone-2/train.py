@@ -206,8 +206,8 @@ def main(argv=None) -> int:
                 "class_share_test": [float(v) for v in np.bincount(y_test, minlength=3) / len(y_test)],
             },
             "validation": {
-                "test_split": "StratifiedGroupKFold(5), one fold = about 20 % of the patients, grouped by patient_nbr",
-                "cv": f"StratifiedGroupKFold({common.N_SPLITS}) grouped by patient_nbr, training patients only",
+                "test_split": "common.GroupStratifiedKFold(5), one fold = about 20 % of the patients, grouped by patient_nbr and stratified by class",
+                "cv": f"common.GroupStratifiedKFold({common.N_SPLITS}) grouped by patient_nbr and stratified by class, training patients only",
                 "selection": "lowest mean cross-validated log-loss",
                 "decision_weights": "grid search of the class weights maximising out-of-fold macro-F1",
             },

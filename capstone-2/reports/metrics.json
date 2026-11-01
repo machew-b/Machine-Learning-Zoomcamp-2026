@@ -1,0 +1,235 @@
+{
+  "seed": 42,
+  "data": {
+    "rows_raw": 101766,
+    "duplicate_rows_dropped": 0,
+    "duplicate_encounter_ids_dropped": 0,
+    "expired_or_hospice_dropped": 2423,
+    "rows_dropped_missing_key_fields": 0,
+    "rows_clean": 99343,
+    "patients_clean": 69990,
+    "class_counts": {
+      "NO": 52527,
+      ">30": 35502,
+      "<30": 11314
+    },
+    "train_rows": 79473,
+    "train_patients": 55991,
+    "test_rows": 19870,
+    "test_patients": 13999,
+    "class_share_train": [
+      0.5287456117171869,
+      0.3573666528254879,
+      0.11388773545732513
+    ],
+    "class_share_test": [
+      0.5287367891293407,
+      0.35737292400603926,
+      0.11389028686462004
+    ]
+  },
+  "validation": {
+    "test_split": "common.GroupStratifiedKFold(5), one fold = about 20 % of the patients, grouped by patient_nbr and stratified by class",
+    "cv": "common.GroupStratifiedKFold(5) grouped by patient_nbr and stratified by class, training patients only",
+    "selection": "lowest mean cross-validated log-loss",
+    "decision_weights": "grid search of the class weights maximising out-of-fold macro-F1"
+  },
+  "params_status": "tuned",
+  "cv": {
+    "logistic_regression": {
+      "log_loss_mean": 0.893674151898497,
+      "log_loss_std": 0.0010172832414582025,
+      "roc_auc_macro_ovr_mean": 0.661221695764336,
+      "roc_auc_macro_ovr_std": 0.0014876191161027348,
+      "roc_auc_early_mean": 0.6650786196368108,
+      "roc_auc_early_std": 0.0036505474627550145,
+      "pr_auc_early_mean": 0.20769676166791712,
+      "pr_auc_early_std": 0.0018690377783645918,
+      "oof_macro_f1": 0.452450693509912,
+      "decision_weights": [
+        1.0,
+        1.5,
+        3.5
+      ]
+    },
+    "decision_tree": {
+      "log_loss_mean": 0.9057479923636919,
+      "log_loss_std": 0.0016931190887455373,
+      "roc_auc_macro_ovr_mean": 0.6377216182466775,
+      "roc_auc_macro_ovr_std": 0.003275222137783624,
+      "roc_auc_early_mean": 0.6308650690475547,
+      "roc_auc_early_std": 0.0072237874939693435,
+      "pr_auc_early_mean": 0.18749422605416266,
+      "pr_auc_early_std": 0.004511989571746684,
+      "oof_macro_f1": 0.4324046541155509,
+      "decision_weights": [
+        1.0,
+        1.5,
+        4.0
+      ]
+    },
+    "random_forest": {
+      "log_loss_mean": 0.89021576584109,
+      "log_loss_std": 0.0012591690628180282,
+      "roc_auc_macro_ovr_mean": 0.6645704164818171,
+      "roc_auc_macro_ovr_std": 0.0021947889053686147,
+      "roc_auc_early_mean": 0.6626153777317453,
+      "roc_auc_early_std": 0.003919750394775902,
+      "pr_auc_early_mean": 0.21529839443515003,
+      "pr_auc_early_std": 0.003780754906834456,
+      "oof_macro_f1": 0.4540952689643791,
+      "decision_weights": [
+        1.0,
+        1.5,
+        4.0
+      ]
+    },
+    "hist_gradient_boosting": {
+      "log_loss_mean": 0.8838198144749871,
+      "log_loss_std": 0.001268908256026234,
+      "roc_auc_macro_ovr_mean": 0.672433736904605,
+      "roc_auc_macro_ovr_std": 0.0017046048395411002,
+      "roc_auc_early_mean": 0.6722145941667635,
+      "roc_auc_early_std": 0.003130744597593534,
+      "pr_auc_early_mean": 0.2244775371499103,
+      "pr_auc_early_std": 0.003909437714182857,
+      "oof_macro_f1": 0.46349504049288215,
+      "decision_weights": [
+        1.0,
+        1.4,
+        3.25
+      ]
+    }
+  },
+  "selected_model": "hist_gradient_boosting",
+  "selected_params": {
+    "learning_rate": 0.03,
+    "max_iter": 150,
+    "max_leaf_nodes": 15,
+    "min_samples_leaf": 200,
+    "l2_regularization": 10.0
+  },
+  "test": {
+    "selected_model": {
+      "log_loss": 0.8790431702473656,
+      "roc_auc_macro_ovr": 0.6776607339377295,
+      "roc_auc_early": 0.6726589907034173,
+      "roc_auc_any_readmission": 0.6956013642211569,
+      "pr_auc_early": 0.2294293321963068,
+      "weights": [
+        1.0,
+        1.4,
+        3.25
+      ],
+      "accuracy": 0.5570709612481127,
+      "balanced_accuracy": 0.46783206897806223,
+      "macro_f1": 0.46964419713903355,
+      "per_class": {
+        "NO": {
+          "precision": 0.6612241000668385,
+          "recall": 0.659147154007234,
+          "f1": 0.6601839935173268,
+          "support": 10506,
+          "predicted": 10473
+        },
+        ">30": {
+          "precision": 0.4874426140966784,
+          "recall": 0.5083791015349951,
+          "f1": 0.49769076997311645,
+          "support": 7101,
+          "predicted": 7406
+        },
+        "<30": {
+          "precision": 0.2682069311903566,
+          "recall": 0.2359699513919576,
+          "f1": 0.25105782792665726,
+          "support": 2263,
+          "predicted": 1991
+        }
+      },
+      "confusion_matrix": [
+        [
+          6925,
+          2875,
+          706
+        ],
+        [
+          2740,
+          3610,
+          751
+        ],
+        [
+          808,
+          921,
+          534
+        ]
+      ]
+    },
+    "baseline_class_frequencies": {
+      "log_loss": 0.9521020551915049,
+      "roc_auc_macro_ovr": 0.5,
+      "roc_auc_early": 0.5,
+      "roc_auc_any_readmission": 0.5,
+      "pr_auc_early": 0.11389028686462004,
+      "weights": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "accuracy": 0.5287367891293407,
+      "balanced_accuracy": 0.3333333333333333,
+      "macro_f1": 0.23057677113510666,
+      "per_class": {
+        "NO": {
+          "precision": 0.5287367891293407,
+          "recall": 1.0,
+          "f1": 0.69173031340532,
+          "support": 10506,
+          "predicted": 19870
+        },
+        ">30": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 7101,
+          "predicted": 0
+        },
+        "<30": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 2263,
+          "predicted": 0
+        }
+      },
+      "confusion_matrix": [
+        [
+          10506,
+          0,
+          0
+        ],
+        [
+          7101,
+          0,
+          0
+        ],
+        [
+          2263,
+          0,
+          0
+        ]
+      ]
+    }
+  },
+  "final_model": {
+    "refit_on": "all cleaned encounters (training + test patients)",
+    "rows": 99343,
+    "note": "test metrics above were measured on a model trained on the training patients only"
+  },
+  "versions": {
+    "python": "3.11.15",
+    "numpy": "2.3.3",
+    "pandas": "2.3.2",
+    "scikit-learn": "1.7.2"
+  }
+}

@@ -28,7 +28,6 @@ from sklearn.ensemble import HistGradientBoostingClassifier, RandomForestClassif
 from sklearn.impute import SimpleImputer
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import average_precision_score, log_loss, roc_auc_score
-from sklearn.model_selection import StratifiedGroupKFold
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import FunctionTransformer, OneHotEncoder, StandardScaler
 from sklearn.tree import DecisionTreeClassifier
@@ -289,22 +288,69 @@ def clean_data(raw: pd.DataFrame) -> pd.DataFrame:
 # --------------------------------------------------------------------------------------
 # Validation scheme: patient-aware hold-out split and cross-validation
 # --------------------------------------------------------------------------------------
+def assign_group_folds(y, groups, n_splits: int = N_SPLITS, seed: int = RANDOM_STATE) -> np.ndarray:
+    """Fold number (0 .. n_splits-1) of every row; all rows of a group (patient) get the same fold.
+
+    Groups are placed one by one, largest first (ties in random order), in the fold whose class counts
+    then stay closest to an equal share of every class. This keeps the class proportions of all folds close
+    to the overall ones. scikit-learn's StratifiedGroupKFold is a greedy method of the same kind, but the class
+    balance it reached differed between library versions in our tests, so the assignment is implemented here:
+    the result depends only on this code, numpy's random generator and the seed.
+    """
+    y = np.asarray(y, dtype=int)
+    groups = np.asarray(groups)
+    if len(y) != len(groups):
+        raise ValueError("y and groups must have the same length")
+    unique, inverse = np.unique(groups, return_inverse=True)
+    inverse = inverse.reshape(-1)
+    if len(unique) < n_splits:
+        raise ValueError(f"need at least {n_splits} groups, found {len(unique)}")
+    counts = np.zeros((len(unique), N_CLASSES))
+    np.add.at(counts, (inverse, y), 1.0)
+    target = np.maximum(counts.sum(axis=0) / n_splits, 1e-9)       # ideal count of every class in one fold
+    order = np.random.default_rng(seed).permutation(len(unique))
+    order = order[np.argsort(-counts[order].sum(axis=1), kind="stable")]
+    fold_counts = np.zeros((n_splits, N_CLASSES))
+    group_fold = np.zeros(len(unique), dtype=int)
+    for group in order:
+        added = counts[group]
+        cost = ((((fold_counts + added - target) ** 2) - ((fold_counts - target) ** 2)) / target).sum(axis=1)   # increase of the squared deviation
+        best = int(np.argmin(cost))
+        fold_counts[best] += added
+        group_fold[group] = best
+    return group_fold[inverse]
+
+
+class GroupStratifiedKFold:
+    """k-fold cross-validation splitter: patient-grouped and class-stratified (see assign_group_folds)."""
+
+    def __init__(self, n_splits: int = N_SPLITS, seed: int = RANDOM_STATE):
+        self.n_splits = n_splits
+        self.seed = seed
+
+    def get_n_splits(self, X=None, y=None, groups=None) -> int:
+        return self.n_splits
+
+    def split(self, X, y, groups):
+        if groups is None:
+            raise ValueError("groups (the patient ids) are required")
+        folds = assign_group_folds(y, groups, self.n_splits, self.seed)
+        for fold in range(self.n_splits):
+            yield np.flatnonzero(folds != fold), np.flatnonzero(folds == fold)
+
+
 def grouped_stratified_split(y, groups, n_splits: int = TEST_FOLDS, seed: int = RANDOM_STATE):
-    """Boolean masks (train, test). The test set is one fold of a stratified grouped k-fold.
+    """Boolean masks (train, test). The test set is one fold of a class-stratified grouped k-fold.
 
     All encounters of a patient land on the same side (a patient's later stays resemble the earlier ones,
     so a random row split would flatter the model), and the class proportions stay close to the overall ones.
     """
-    y = np.asarray(y)
-    splitter = StratifiedGroupKFold(n_splits=n_splits, shuffle=True, random_state=seed)
-    train_idx, test_idx = next(splitter.split(np.zeros(len(y)), y, np.asarray(groups)))
-    test_mask = np.zeros(len(y), dtype=bool)
-    test_mask[test_idx] = True
+    test_mask = assign_group_folds(y, groups, n_splits, seed) == 0
     return ~test_mask, test_mask
 
 
-def grouped_cv_splitter(n_splits: int = N_SPLITS, seed: int = RANDOM_STATE) -> StratifiedGroupKFold:
-    return StratifiedGroupKFold(n_splits=n_splits, shuffle=True, random_state=seed)
+def grouped_cv_splitter(n_splits: int = N_SPLITS, seed: int = RANDOM_STATE) -> GroupStratifiedKFold:
+    return GroupStratifiedKFold(n_splits=n_splits, seed=seed)
 
 
 def sample_rows_by_group(groups, n_rows: int, seed: int = RANDOM_STATE) -> np.ndarray:

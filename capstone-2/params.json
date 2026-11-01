@@ -1,27 +1,46 @@
 {
   "_meta": {
-    "status": "defaults",
-    "note": "Default hyper-parameters. Run notebook.ipynb to tune them; its last code cell overwrites this file with status 'tuned'."
+    "status": "tuned",
+    "written_by": "notebook.ipynb",
+    "tuning": "3-fold patient-grouped search on about 30,000 encounters, scoring = log-loss; starting values kept when the search did not beat them",
+    "selected_in_notebook": "hist_gradient_boosting",
+    "decision_weights_in_notebook": [
+      1.0,
+      1.4,
+      3.25
+    ],
+    "cv_log_loss_in_notebook": {
+      "logistic_regression": 0.8937,
+      "decision_tree": 0.9057,
+      "random_forest": 0.8902,
+      "hist_gradient_boosting": 0.8838
+    },
+    "versions": {
+      "python": "3.11.15",
+      "numpy": "2.3.3",
+      "pandas": "2.3.2",
+      "scikit-learn": "1.7.2"
+    }
   },
   "logistic_regression": {
-    "C": 0.1
+    "C": 0.03
   },
   "decision_tree": {
-    "max_depth": 6,
+    "max_depth": 5,
     "min_samples_leaf": 100
   },
   "random_forest": {
     "n_estimators": 200,
-    "max_depth": 14,
-    "min_samples_leaf": 30,
-    "max_features": "sqrt",
-    "max_samples": 0.5
+    "max_depth": 12,
+    "min_samples_leaf": 10,
+    "max_features": 0.3,
+    "max_samples": 0.3
   },
   "hist_gradient_boosting": {
-    "learning_rate": 0.05,
-    "max_iter": 200,
+    "learning_rate": 0.03,
+    "max_iter": 150,
     "max_leaf_nodes": 15,
-    "min_samples_leaf": 100,
-    "l2_regularization": 1.0
+    "min_samples_leaf": 200,
+    "l2_regularization": 10.0
   }
 }

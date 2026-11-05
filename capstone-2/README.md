@@ -6,7 +6,7 @@ Machine Learning Zoomcamp 2026, **Capstone 2**. A three-class classification mod
 - **Models compared:** logistic regression, decision tree, random forest and gradient-boosted trees, with hyper-parameter tuning.
 - **Validation:** hold-out test set and cross-validation that keep **all encounters of a patient together**, stratified by class, because the same patient appears in several rows.
 - **Serving:** Flask API (single and batch prediction) returning class probabilities, a decision and warnings; Docker image and Kubernetes manifests.
-- **Status:** code, tests and notebook are complete. The sections marked *to be filled after the real run* are completed only from real outputs (see [Results](#results) and [Verification](#verification)).
+- **Status:** complete and verified end to end: unit tests, the executed notebook, training, the local service, the Docker image and a two-replica deployment on a local Kubernetes cluster have all been run (see [Results](#results) and [Verification](#verification)).
 
 > **Intended use.** A decision-support demonstration trained on 1999-2008 US hospital data. It is not a medical device and must not be used for clinical decisions.
 
@@ -69,9 +69,65 @@ The details, with the evidence, are in [`notebook.ipynb`](notebook.ipynb); the l
 
 ## Results
 
-*To be filled after the real run.* The numbers will come from `python train.py` and be stored in [`reports/metrics.json`](reports/metrics.json); the tables are `reports/results.md`. Nothing is reported here before it has been produced from the real data: this repository was prepared with synthetic data in the real file's format because the real download could not be run where the code was written.
+All numbers come from a real run (Python 3.11.15, numpy 2.3.3, pandas 2.3.2, scikit-learn 1.7.2, seed 42) and are stored in [`reports/metrics.json`](reports/metrics.json) and [`reports/results.md`](reports/results.md); the figures and tables behind the findings are in the executed [`notebook.ipynb`](notebook.ipynb). Other machines or library versions can differ in the last decimals.
 
-<!-- RESULTS-PLACEHOLDER: cross-validation table, hold-out table, per-class table, confusion matrix, findings, permutation importance, subgroup audit, leakage demonstration -->
+**Data after cleaning.** 101,766 encounters were loaded; no duplicates were found and **2,423 encounters of patients who died or went to hospice were removed**, leaving 99,343 encounters of 69,990 patients. Classes: not readmitted 52,527 (52.9 %), readmitted after more than 30 days 35,502 (35.7 %), readmitted within 30 days 11,314 (11.4 %). The hold-out set holds 19,870 encounters of 13,999 patients (20 % of the patients), the training set 79,473 encounters of 55,991 patients; the class shares of the two sets agree to three decimals and no patient is in both.
+
+### Model comparison (cross-validation on the training patients, patient-grouped, 5 folds)
+
+| Model | Log-loss (mean +/- std) | ROC-AUC macro | ROC-AUC for `<30` | PR-AUC for `<30` | Out-of-fold macro-F1 |
+|---|---|---|---|---|---|
+| logistic regression | 0.894 +/- 0.001 | 0.661 | 0.665 | 0.208 | 0.452 |
+| decision tree | 0.906 +/- 0.002 | 0.638 | 0.631 | 0.187 | 0.432 |
+| random forest | 0.890 +/- 0.001 | 0.665 | 0.663 | 0.215 | 0.454 |
+| **gradient boosting (selected)** | **0.884 +/- 0.001** | **0.672** | **0.672** | **0.224** | **0.463** |
+| training class frequencies (no information) | 0.952 | 0.500 | 0.500 | 0.114 | 0.231 |
+
+Gradient boosting has the lowest log-loss and the best ranking of early readmissions. The tuned parameters are `learning_rate` 0.03, `max_iter` 150, `max_leaf_nodes` 15, `min_samples_leaf` 200 and `l2_regularization` 10. The gains of tuning over the starting values were small (for the gradient boosting 0.8914 to 0.8899 log-loss on the tuning sample; the random forest improved most, 0.9036 to 0.8964), so the starting values were already reasonable. Even the logistic regression is close to the best model: with these inputs the achievable signal is limited, and a more flexible model adds only a little.
+
+### Hold-out test patients (evaluated once)
+
+| Predictor | Log-loss | ROC-AUC macro | ROC-AUC for `<30` | PR-AUC for `<30` | Macro-F1 | Balanced accuracy | Accuracy |
+|---|---|---|---|---|---|---|---|
+| gradient boosting (selected) | 0.879 | 0.678 | 0.673 | 0.229 | 0.470 | 0.468 | 0.557 |
+| training class frequencies (no information) | 0.952 | 0.500 | 0.500 | 0.114 | 0.231 | 0.333 | 0.529 |
+
+The test scores agree with the cross-validated ones (log-loss 0.879 against 0.884, ROC-AUC for `<30` 0.673 against 0.672), so there is no sign of over-fitting to the validation folds. The decision weights (NO, >30, <30) are 1, 1.4 and 3.25.
+
+| Class | Precision | Recall | F1 | Test encounters | Predicted |
+|---|---|---|---|---|---|
+| NO | 0.661 | 0.659 | 0.660 | 10,506 | 10,473 |
+| >30 | 0.487 | 0.508 | 0.498 | 7,101 | 7,406 |
+| <30 | 0.268 | 0.236 | 0.251 | 2,263 | 1,991 |
+
+| true \ predicted | NO | >30 | <30 |
+|---|---|---|---|
+| NO | 6,925 | 2,875 | 706 |
+| >30 | 2,740 | 3,610 | 751 |
+| <30 | 808 | 921 | 534 |
+
+### What these numbers mean
+
+- **The model has real but moderate skill.** The ROC-AUC for an early readmission is 0.673 (0.5 is chance) and the PR-AUC is 0.229, twice the 0.114 that a model without information obtains. The probabilities are well calibrated: in the out-of-fold reliability plot the observed share of early readmissions follows the predicted probability closely across the whole range.
+- **It is not a reliable yes/no classifier.** With the chosen weights, about one in four patients flagged as `<30` is really readmitted early (precision 0.27) and about one in four early readmissions is found (recall 0.24). Accuracy (0.557) is only slightly above the 0.529 of always answering "not readmitted", which is why the evaluation relies on log-loss, AUC, macro-F1 and per-class results instead.
+- **It is useful for ranking.** Ordering the test discharges by the predicted probability of an early readmission and flagging only the highest-ranked share gives:
+
+| Flagged share of discharges | Early readmissions caught | Precision among flagged | Lift over random |
+|---|---|---|---|
+| top 5 % | 14.4 % | 32.7 % | 2.9 x |
+| top 10 % | 23.7 % | 27.0 % | 2.4 x |
+| top 20 % | 39.0 % | 22.2 % | 1.9 x |
+| top 30 % | 51.0 % | 19.4 % | 1.7 x |
+| top 50 % | 70.7 % | 16.1 % | 1.4 x |
+
+  A transitional-care team that can follow up 10 % of discharges would reach about a quarter of the early readmissions with this ranking, against a tenth by chance. How far down the list to go is a capacity and cost decision.
+- **Prior hospital use is the strongest signal.** In the training patients the share of early readmissions grows from 8.6 % for patients with no inpatient visit in the previous year to 13.3 %, 18.1 %, 20.7 % and 24.0 % for one to four, and 37.2 % for five or more (any readmission: 39 % to 85 %). Permutation importance on the test patients agrees: shuffling `number_inpatient` raises the log-loss by 0.049 and lowers the AUC for `<30` by 0.066, far more than any other input; next come `discharge_disposition_id` (0.014; AUC drop 0.051), `admission_source_id` (0.007), `number_outpatient` (0.006), `number_emergency` (0.006), `number_diagnoses`, the admitting specialty, age, the payer and the primary diagnosis (0.003 to 0.005 each). HbA1c measurement, drug changes and the individual drugs matter little.
+- **Subgroup audit (test patients).** Race and gender are not inputs, and the mean predicted probability tracks the observed early-readmission rate in the large groups (for example 11.6 % predicted against 11.4 % observed for African American patients, 11.4 % against 11.7 % for Caucasian patients, 11.7 % against 11.6 % for women, 11.1 % against 11.1 % for men). The ranking is somewhat weaker for African American patients (ROC-AUC 0.641) than for Caucasian patients (0.679), and recall of `<30` is 0.21 against 0.25; the groups for Hispanic patients (399 encounters) and for patients without a recorded race (415) are too small for conclusions. By gender the results are similar (AUC 0.666 and 0.680). The ranking quality falls with age (ROC-AUC 0.74 for 30 to 40 years down to 0.58 for 90 to 100 years). These gaps are worth monitoring in any real use.
+- **Patient-aware validation matters less here than expected.** Cross-validating the selected model on the tuning sample with ordinary shuffled folds instead of patient-grouped folds changed the log-loss by only 0.0005 and the AUC for `<30` by 0.0026 in the optimistic direction. The patient-aware design is still the right one (46 % of the encounters belong to the 16,773 patients with more than one encounter), but with these inputs and this model the leakage is small.
+
+The deployed `model.bin` is refit on all 99,343 encounters with the same parameters, so it cannot be scored on the test patients; the test scores above belong to the model trained on the training patients only.
+
+**Example.** `sample_request.json` (a 70-year-old with heart failure and two prior inpatient visits) gives about 32 % for no readmission, 50 % for readmission after more than 30 days and 17.5 % for readmission within 30 days, so the decision is `>30`; the probability of an early readmission is about 1.5 times the average. A low-utilisation patient (no prior visits, 2 days in hospital) gets 4.5 % for an early readmission and a high-utilisation patient (six prior inpatient visits) 37 %.
 
 ## Repository layout
 
@@ -93,6 +149,7 @@ capstone-2/
 ├── deployment/verification.md  record of the runs
 ├── tests/                  unit tests (standard library unittest, no network needed)
 ├── reports/                metrics written by train.py
+├── images/                 screenshots of the runs
 └── data/  model.bin        created locally, not committed
 ```
 
@@ -139,7 +196,7 @@ Open `notebook.ipynb` in VS Code or Jupyter and run all cells, or execute it fro
 python -m nbconvert --to notebook --execute --inplace --ExecutePreprocessor.timeout=-1 notebook.ipynb
 ```
 
-It takes roughly 15 to 40 minutes depending on the number of CPU cores, mostly for the hyper-parameter searches and the cross-validation, and it prints nothing until it is done. It writes `params.json`. On Windows, red `KeyError ... joblib_memmapping_folder` messages at the end are harmless cleanup noise from joblib; success is the line saying the notebook was written.
+It prints nothing until it is done. In the reference run it took under ten minutes; allow up to 30 minutes on a machine with few CPU cores. It writes `params.json`. On Windows, red `KeyError ... joblib_memmapping_folder` messages at the end are harmless cleanup noise from joblib; success is the line saying the notebook was written.
 
 ### 4. Train the final model
 
@@ -147,7 +204,7 @@ It takes roughly 15 to 40 minutes depending on the number of CPU cores, mostly f
 python train.py
 ```
 
-It prints the cross-validated scores of the four models, the selected model and its score on the test patients, then saves `model.bin` (the whole fitted pipeline plus metadata) and the reports in `reports/`. Expect several minutes. `train.py` warns if `params.json` still holds untuned starting values.
+It prints the cross-validated scores of the four models, the selected model and its score on the test patients, then saves `model.bin` (the whole fitted pipeline plus metadata) and the reports in `reports/`. It took 70 to 100 seconds in the reference run. `train.py` warns if `params.json` still holds untuned starting values.
 
 ### 5. Run the service
 
@@ -183,6 +240,8 @@ curl -s -X POST http://localhost:9696/predict -H "Content-Type: application/json
 python -m unittest discover -s tests -v
 ```
 
+85 tests; they run in about ten to twenty seconds.
+
 The tests use a synthetic data set that mimics the format of the real file (header with hyphenated drug names, `?` and `None` values, repeated patients, expired and hospice discharges), so they need neither the download nor an internet connection. They cover the loader and the cleaning rules, the patient-aware splits, the feature engineering, the agreement of the training and serving paths, the metrics and the decision rule, the input validation, `train.py`, the download script and every API endpoint. The synthetic numbers are meaningless and are never used for results.
 
 ### Troubleshooting
@@ -190,6 +249,7 @@ The tests use a synthetic data set that mimics the format of the real file (head
 - `Jupyter command ... jupyter.exe not found` on Windows: use `python -m nbconvert ...` as shown in step 3.
 - `ImportError: DLL load failed while importing _imaging: An Application Control policy has blocked this file` (Pillow, which matplotlib needs): Windows Application Control blocked a freshly installed file. The unit tests, `train.py` and the service do not use matplotlib; for the notebook, use an environment in which matplotlib already imports, for example another project's virtual environment with the same pinned versions.
 - At the end of the notebook run, `KeyError ... joblib_memmapping_folder` messages are harmless.
+- `kind load docker-image` fails with `ctr: ... EOF` (pods in `ImagePullBackOff`): see the fallback in [Kubernetes](#kubernetes-local-kind-cluster).
 - `The file does not look like the diabetes readmission data`: the file in `data/` is not `diabetic_data.csv` or is damaged; run `python download_data.py --force`.
 
 ## API
@@ -242,6 +302,8 @@ python predict_test.py http://localhost:9696
 
 Stop `python predict.py` first if it is using port 9696, or publish another port (`-p 9697:9696`). The `PORT` environment variable changes the listening port.
 
+In the reference run the build took 147 seconds (about 100 of them for the download and the training inside the image), the image is about 160 MB compressed, the container started two gunicorn workers and answered the health check, `predict_test.py` passed all its checks against it, and `GET /` reported the model trained inside the image: `hist_gradient_boosting`, decision weights 1, 1.4 and 3.25, 99,343 training encounters, hold-out log-loss 0.879, the same values as the local training.
+
 ## Kubernetes (local `kind` cluster)
 
 ```powershell
@@ -257,10 +319,25 @@ kind delete cluster --name readmission                              # when finis
 
 [`deployment/k8s/deployment.yaml`](deployment/k8s/deployment.yaml) runs two replicas with readiness and liveness probes on `/health` and resource requests and limits. [`deployment/k8s/service.yaml`](deployment/k8s/service.yaml) exposes them inside the cluster on port 80.
 
-*Screenshots of the pods and of the smoke test through the port-forward: to be added after the run.*
+**If `kind load` fails.** On Docker Desktop for Windows, `kind load docker-image` (and `kind load image-archive`) failed in the reference run with `ctr: rpc error: code = Unavailable desc = error reading from server: EOF`, although the node had plenty of free disk space; the pods then stay in `ImagePullBackOff`. Copying the image archive into the node and importing it there worked:
 
-<!-- ![kubectl get pods](images/k8s-pods.png) -->
-<!-- ![predict_test.py through the port-forward](images/k8s-predict.png) -->
+```powershell
+docker save readmission-risk:1.0 -o readmission-risk.tar
+docker cp readmission-risk.tar readmission-control-plane:/readmission-risk.tar
+docker exec readmission-control-plane ctr -n k8s.io images import /readmission-risk.tar
+docker exec readmission-control-plane rm /readmission-risk.tar
+Remove-Item readmission-risk.tar
+docker exec readmission-control-plane crictl images        # docker.io/library/readmission-risk 1.0 must be listed
+kubectl apply -f deployment/k8s/
+```
+
+**Result of the reference run.** The deployment rolled out, both replicas are `1/1 Running` with no restarts, and the smoke test passes through the port-forward.
+
+![Rollout and pods: two replicas 1/1 Running](images/k8s-pods.png)
+
+![Deployment 2/2, ClusterIP service on port 80, two running pods](images/k8s-resources.png)
+
+![predict_test.py through the port-forward: all checks passed](images/k8s-predict-test.png)
 
 ### Public cloud (Google Cloud Run), documented but not run
 
@@ -274,15 +351,20 @@ The command prints the service URL; `python predict_test.py <that URL>` checks i
 
 ## Verification
 
-See [`deployment/verification.md`](deployment/verification.md). *To be filled after the real run.*
+See [`deployment/verification.md`](deployment/verification.md): the unit tests, the data download, the executed notebook, `train.py`, the local service, the Docker container and the Kubernetes deployment, each with its output.
+
+![train.py output](images/train-output.png)
+
+![predict_test.py against the local service](images/predict-test-local.png)
 
 ## Design decisions and limitations
 
 **Decisions**
-- *Patient-grouped, stratified splits* instead of random splits: a large share of the encounters (the notebook prints the exact figure) belong to a patient with other encounters in the table, and a patient's stays resemble each other.
+- *Patient-grouped, stratified splits* instead of random splits: 46 % of the encounters belong to a patient with other encounters in the table, and a patient's stays resemble each other.
 - *Expired and hospice discharges removed*: they cannot be readmitted.
 - *Log-loss for selection, macro-F1 only for the decision weights*: selecting on a threshold metric would reward whichever model happens to produce a good arg-max; the probabilities are what the service returns.
 - *Race and gender not used as inputs*, but audited in the notebook (observed versus predicted rate, ROC-AUC and recall by group).
+- *Own grouped, class-stratified splitter* (`common.GroupStratifiedKFold`) instead of scikit-learn's `StratifiedGroupKFold`: on a small test data set the latter left the hold-out fold with a visibly different class mix under scikit-learn 1.7.2, so the assignment is implemented in `common.py` and gives the same class shares in all folds regardless of the library version.
 - *Gradient boosting from scikit-learn* (`HistGradientBoostingClassifier`) instead of XGBoost: the same family of models without an extra dependency, which keeps the pinned environment and the Docker image small.
 - *One saved object*: the pipeline contains feature engineering, preprocessing and the model, so the service cannot drift away from training. `model.bin` is a pickle written by `train.py`; only load model files you created yourself.
 - *Warnings instead of rejections* for inputs outside the training range or unseen categories: the service should say that it is extrapolating rather than refuse.
